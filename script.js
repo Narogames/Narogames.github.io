@@ -12,7 +12,7 @@ window.addEventListener('load', function(){
       const audio1 = document.getElementById("audio1");
       audio1.src = 'musica.mp3'
       audio1.play();
-      const audioContext = new AudioContext();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       console.log(audioSource)
       if (!audioSource) {
         audioSource = audioContext.createMediaElementSource(audio1);
@@ -21,7 +21,7 @@ window.addEventListener('load', function(){
         analyser.connect(audioContext.destination);
       }
   
-      analyser.fftSize = 64;
+      analyser.fftSize = 256;  // Aumentei o tamanho da FFT para obter mais resolução
       console.log(analyser.fftSize)
       const bufferLength = analyser.frequencyBinCount;
       console.log(bufferLength);
@@ -33,16 +33,16 @@ window.addEventListener('load', function(){
       let x = 0;
 
       function animate() {
-        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         x = 0;
         analyser.getByteFrequencyData(dataArray);
 
         for (let i = 0; i < bufferLength; i++) {
-          barHeight = dataArray[i] * 1.5;
+          barHeight = dataArray[i] * 3;  // Ajuste o multiplicador para melhorar a visibilidade
           
-          const red = 250 * (i/bufferLength);
-          const green = 0;
-          const blue = barHeight + (2 * (i/bufferLength));
+          const red = 0;
+          const green = i / bufferLength * 255; // Ajuste para criar uma variação de cor
+          const blue = 255 - i / bufferLength * 255; // Ajuste para criar uma variação de cor
 
           ctx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
           ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
@@ -52,6 +52,6 @@ window.addEventListener('load', function(){
         requestAnimationFrame(animate);
       }
 
-    animate();
+      animate();
     });
 });
