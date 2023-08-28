@@ -1,26 +1,57 @@
-const playButton = document.createElement('div');
-playButton.textContent = 'Clique para reproduzir';
-playButton.style.cursor = 'pointer';
-document.body.appendChild(playButton);
+window.addEventListener('load', function(){
+    const container = document.getElementById("container");
+    const canvas = document.getElementById("canvas1");
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+    let audioSource;
+    let analyser;
+ 
+    container.addEventListener('click', function() {
+      const audio1 = document.getElementById("audio1");
+      audio1.src = "
+      audio1.play();
+      const audioContext = new AudioContext();
+      console.log(audioSource)
+      if (!audioSource) {
+        audioSource = audioContext.createMediaElementSource(audio1);
+        analyser = audioContext.createAnalyser();
+        audioSource.connect(analyser);
+        analyser.connect(audioContext.destination);
+      }
+  
+      analyser.fftSize = 64;
+      console.log(analyser.fftSize)
+      const bufferLength = analyser.frequencyBinCount;
+      console.log(bufferLength);
 
-const audioInput = document.createElement('input');
-audioInput.type = 'file';
-audioInput.accept = 'audio/*';
-document.body.appendChild(audioInput);
+      const dataArray = new Uint8Array(bufferLength);
 
-const audioPlayer = new Audio();
-audioPlayer.controls = true;
-document.body.appendChild(audioPlayer);
+      const barWidth = (canvas.width / bufferLength);
+      let barHeight;
+      let x = 0;
 
-playButton.addEventListener('click', () => {
-    audioPlayer.play();
-});
+      function animate() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        x = 0;
+        analyser.getByteFrequencyData(dataArray);
 
-audioInput.addEventListener('change', () => {
-    const selectedAudio = audioInput.files[0];
-    if (selectedAudio) {
-        const audioURL = URL.createObjectURL(selectedAudio);
-        audioPlayer.src = audioURL;
-        playButton.style.display = 'block';
-    }
+        for (let i = 0; i < bufferLength; i++) {
+          barHeight = dataArray[i] * 1.5;
+          
+          const red = 250 * (i/bufferLength);
+          const green = 0;
+          const blue = barHeight + (2 * (i/bufferLength));
+
+          ctx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+          ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+          x += barWidth + 1;
+        }
+        requestAnimationFrame(animate);
+      }
+
+    animate();
+    });
 });
